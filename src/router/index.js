@@ -8,14 +8,24 @@ const router = createRouter({
             path: '/',
             name: 'home',
             component: Home,
-            children: [{
-                name: 'senselessRefresh',
-                path: '/senselessRefresh',
-                meta: {
-                    title: '无感刷新'
+            children: [
+                {
+                    name: 'senselessRefresh',
+                    path: '/senselessRefresh',
+                    meta: {
+                        title: '无感刷新'
+                    },
+                    component: () => import('@/views/SenselessRefresh.vue')
                 },
-                component: () => import('@/views/SenselessRefresh.vue')
-            }]
+                {
+                    name: 'largeFileUpload',
+                    path: '/largeFileUpload',
+                    meta: {
+                        title: '大文件上传'
+                    },
+                    component: () => import('@/views/LargeFileUpload.vue')
+                }
+            ]
         }
     ]
 })
