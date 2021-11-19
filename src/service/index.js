@@ -1,4 +1,5 @@
 import axios from 'axios'
+import message from '@/utils/message'
 
 const getToken = () => localStorage.getItem('S-Token')
 
@@ -31,7 +32,7 @@ instance.interceptors.response.use((response) => {
             isRefreshing = true
             return refreshToken().then((res) => {
                 if (res.data.returnCode === 400) {
-                    console.log('抱歉，您的登录状态已失效，请重新登录！')
+                    message.warning('抱歉，您的登录状态已失效，请重新登录！')
                     return
                 }
                 const { accessToken } = res.data
@@ -42,7 +43,7 @@ instance.interceptors.response.use((response) => {
                 requests = [] // 重新请求完清空
                 return instance(config)
             }).catch((err) => {
-                console.log('抱歉，您的登录状态已失效，请重新登录！')
+                message.warning('抱歉，您的登录状态已失效，请重新登录！')
                 return Promise.reject(err)
             }).finally(() => {
                 isRefreshing = false
