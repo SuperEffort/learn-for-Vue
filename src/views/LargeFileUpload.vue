@@ -1,19 +1,19 @@
 <template>
     <el-upload
-        class="upload-demo"
         action=""
-        multiple
-        :limit="3"
-        :before-upload="beforeAvatarUpload"
+        :limit="1"
+
         :file-list="fileList"
+        :http-request="beforeAvatarUpload"
     >
         <el-button size="small" type="primary">上传文件</el-button>
     </el-upload>
 </template>
 <script>
 import { ref } from 'vue'
+import { post } from '@/service'
 
-const SIZE = 10 * 1024 * 1024 // 切片大小 10M
+const SIZE = 5 * 1024 * 1024 // 切片大小 10M
 
 export default {
     setup () {
@@ -30,14 +30,31 @@ export default {
             return fileChunkList
         }
 
+        // 合并切片
+        const mergeRequest = (fileName) => {
+            post('/mergeFileChunk', { fileName, size: SIZE }, true).then()
+        }
+
+        // 上传切片
+        const uploadChunks = async (fileChunkList, fileName) => {
+            const requestList = fileChunkList.map(({ file }, index) => {
+                const formData = new FormData()
+                formData.append('file', file)
+                formData.append('hash', `${fileName}-${index}`)
+                formData.append('fileName', fileName)
+                return { formData }
+            }).map(async ({ formData }) => {
+                post('/uploadBigFile', formData, true).then()
+            })
+            await Promise.all(requestList)
+            await mergeRequest(fileName)
+        }
+
         // 上传钩子
-        const beforeAvatarUpload = (fileData) => {
-            const fileChunkList = handleFileChunk(fileData)
-            const data = fileChunkList.map(({ file }, index) => ({
-                chunk: file,
-                hash: `${fileData.name}-${index}` // 文件名 + 数组下标
-            }))
-            console.log(data)
+        const beforeAvatarUpload = async (fileData) => {
+            const { file } = fileData
+            const fileChunkList = handleFileChunk(file)
+            await uploadChunks(fileChunkList, file.name)
         }
 
         return {
